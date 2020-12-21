@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/css/bootstrap.min.css" rel="stylesheet">-->
+  <title>Document</title>
+
+  <link href="./css/bootstrap.min.css" rel="stylesheet">
+
+  <script src="https://unpkg.com/vue"></script>
+
+</head>
+
+<body>
+  <div id="app">
+    <div class="jumbotron">
+      <h1 class="display-3">Near Network Status Monitor </h1>
+      <p class="lead">This is a near node information.</p>
+      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    </div>
+    <div class="container-fluid">
+      <table class="table table-hover" id>
+        <thead>
+          <tr>
+            <th scope="col">Host</th>
+            <th scope="col">Type</th>
+            <th scope="col">Height</th>
+            <th scope="col">Author</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-secondary" v-for="(item, index) in items" :key="index">
+            <td> {{ item.host  }}</td>
+            <td>{{ item.type }}</td>
+            <td>{{ item.height }}</td>
+            <td >{{item.author}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.0/axios.min.js"></script>
+<!-- <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.min.js"></script> -->
+<!-- <script src="./js/app.js"></script> -->
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      message: "hell",
+      // ip: [],
+      items: []
+    },
+    //存放方法区域
+    methods: {
+      async getBlock(url) {
+        console.log('getBlock', `${url}`)
+        const config = {
+          method: 'post',
+          url: url,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: JSON.stringify({ "jsonrpc": "2.0", "id": "dontcare", "method": "block", "params": { "finality": "final" } })
+        };
+
+        const { data } = await axios(config)
+        console.log('data', data)
+
+        // this.items.find()
+        this.items.find((item, index) => {
+          console.log('items', item.host === url)
+          if (item.host === url) {
+            Vue.set(this.items, index, {
+              host: url,
+              type: "RPC",
+              author: data.result.author,
+              height: data.result.header.height
+            })
+          }
+        });
+      },
+
+      async getIp() {
+        var config = {
+          method: 'get',
+          url: 'http://localhost:8111/status',
+          headers: {
+          }
+        };
+
+        const { data } = await axios(config)
+        return data;
+      }
+    },
+    //页面加载完自动加载区域
+    mounted() {
+
+      this.getIp().then((res) => {
+        const { data } = res;
+        data.forEach(element => {
+          console.log('element', element)
+          this.items.push({
+            host: element,
+            type: "RPC",
+            author: "",
+            height: ""
+          })
+        });
+
+        this.items.forEach(element => {
+          this.getBlock(element.host)
+        })
+      })
+
+
+
+      setInterval(() => {
+        this.items.forEach(element => {
+          this.getBlock(element.host)
+        })
+      }, 5000)
+
+
+      // this.getIp().then((res) => {
+      //   const { data } = res;
+      //   data.forEach(element => {
+      //     console.log('element', element)
+      //     this.items.push({
+      //       host: element,
+      //       type: "RPC",
+      //       author: "",
+      //       height: ""
+      //     })
+      //     this.getBlock(element)
+      //   });
+
+      // })
+
+      // this.getIp().then((res) => {
+      //   const { data } = res;
+      //   data.forEach(element => {
+      //     console.log('element', element)
+      //     this.items.push({
+      //       host: element,
+      //       type: "RPC",
+      //       author: "",
+      //       height: ""
+      //     })
+      //   });
+      // });
+      //   setInterval(() => {
+      //     this.items.forEach(element => {
+      //       this.getBlock(element.host)
+      //     })
+      //   })
+      // }, 10000)
+
+    }
+
+  })
+</script>
+
+</html>
