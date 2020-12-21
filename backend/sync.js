@@ -28,7 +28,7 @@ async function getBlock(url) {
     const config = {
         method: 'post',
         url: `http://${url}:3030`,
-        timeout: 2000,
+        timeout: 3000,
         headers: {
             'Content-Type': 'application/json'
         },
@@ -86,8 +86,13 @@ async function mian() {
 
 }
 
-mian()
+//
 
 //getBlock()
 
 // networkInfo()
+
+mian()
+setInterval(() => {
+    mian()
+}, 1000 * 60 * 10);
